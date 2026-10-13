@@ -1,15 +1,31 @@
 import mongoose from "mongoose";
-import { env } from "./env.js";
+import { env, requireEnv } from "./env.js";
 
+let connectionPromise: Promise<typeof mongoose> | undefined;
 
 export async function connectDB() {
-    try {
-        await mongoose.connect(env.mongoUri, {
-            dbName: env.databaseName
-        });
-        console.log("MongoDB connected")
-    } catch (error) {
-        console.error("MongoDB connection failed:", error);
-        process.exit(1);
+    if (mongoose.connection.readyState === 1) {
+        return mongoose;
     }
+
+    if (mongoose.connection.readyState !== 2) {
+        connectionPromise = undefined;
+    }
+
+    if (!connectionPromise) {
+        connectionPromise = mongoose.connect(requireEnv("MONGODB_URI", env.mongoUri), {
+            dbName: requireEnv("DATABASE_NAME", env.databaseName),
+            serverSelectionTimeoutMS: 10_000,
+            maxPoolSize: 10,
+        }).then((connection) => {
+            console.log("MongoDB connected");
+            return connection;
+        }).catch((error: unknown) => {
+            connectionPromise = undefined;
+            console.error("MongoDB connection failed:", error);
+            throw error;
+        });
+    }
+
+    return connectionPromise;
 }

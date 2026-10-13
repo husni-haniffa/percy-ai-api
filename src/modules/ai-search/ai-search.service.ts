@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { embeddings } from "../../config/openai.js";
+import { embedDocuments, embedQuery } from "../../config/openai.js";
 import { AppError } from "../../lib/AppError.js";
 import { activeFilter, publicFields } from "../browse/browse.service.js";
 import { Listing } from "../listings/listing.model.js";
@@ -47,7 +47,7 @@ export async function indexListing(listing: any) {
     try {
         const data = typeof listing.toObject === "function" ? listing.toObject() : listing;
         const text = buildListingText(data);
-        const embedding = await embeddings.embedQuery(text);
+        const embedding = await embedQuery(text);
 
         await ListingVector.updateOne(
             { listing: data._id },
@@ -84,7 +84,7 @@ export async function reindexAll() {
     if (listings.length === 0) return { indexed: 0 };
 
     const texts = listings.map(buildListingText);
-    const vectors = await embeddings.embedDocuments(texts); // one batch call
+    const vectors = await embedDocuments(texts); // one batch call
 
     await ListingVector.bulkWrite(
         listings.map((listing, i) => ({
@@ -110,7 +110,7 @@ export async function reindexAll() {
 export async function searchListings(query: string) {
     let queryVector: number[];
     try {
-        queryVector = await embeddings.embedQuery(query);
+        queryVector = await embedQuery(query);
     } catch (error) {
         console.error("AI search: could not embed the query", error);
         throw new AppError("AI search is unavailable right now. Please try again shortly.", 503);

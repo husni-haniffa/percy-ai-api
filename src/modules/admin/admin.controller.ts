@@ -64,8 +64,12 @@ export async function listAll(req: Request, res: Response, next: NextFunction) {
 
 export async function remove(req: Request, res: Response, next: NextFunction) {
     try {
-        const result = rejectSchema.safeParse(req.body); // same shape: { reason }
-        const reason = result.success ? result.data.reason.trim() : "";
+        const result = validate(
+            rejectSchema,
+            req.body,
+            "Please give a reason (5 to 500 characters)"
+        );
+        const reason = result.reason.trim();
         if (reason.length < 5) {
             throw new AppError("Please give a reason (5 to 500 characters)", 400);
         }

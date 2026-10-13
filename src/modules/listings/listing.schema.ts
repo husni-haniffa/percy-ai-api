@@ -1,33 +1,33 @@
-import { z } from "zod";
+import { type } from "arktype";
 
-const baseListing = z.object({
-    title: z.string().min(3).max(100),
-    description: z.string().min(10).max(2000),
-    purpose: z.enum(["sale", "rent"]),
-    price: z.number().positive(),
-    city: z.string().min(2).max(50),
-    images: z.array(z.string()).max(10),
-}).passthrough();
+const baseListing = {
+    title: type("string>=3").narrow((title) => title.length <= 100),
+    description: type("string>=10").narrow((description) => description.length <= 2000),
+    purpose: "'sale' | 'rent'",
+    price: "number>0",
+    city: type("string>=2").narrow((city) => city.length <= 50),
+    images: type("string[]").narrow((images) => images.length <= 10),
+} as const;
 
-const propertyListing = baseListing.extend({
-    category: z.literal("property"),
-    propertyType: z.enum(["house", "apartment", "land", "commercial"]),
-    bedrooms: z.number().int().nonnegative().optional(),
-    bathrooms: z.number().int().nonnegative().optional(),
-    perches: z.number().positive().optional(),
+const propertyListing = type.merge(baseListing, {
+    category: "'property'",
+    propertyType: "'house' | 'apartment' | 'land' | 'commercial'",
+    "bedrooms?": "number.integer>=0",
+    "bathrooms?": "number.integer>=0",
+    "perches?": "number>0",
 });
 
-const vehicleListing = baseListing.extend({
-    category: z.literal("vehicle"),
-    vehicleType: z.enum(["car", "van", "suv", "motorbike", "three-wheeler", "lorry"]),
-    brand: z.string().min(1).max(50),
-    code: z.string().min(1).max(50),
-    year: z.number().int().min(1950),
-    mileage: z.number().nonnegative(),
-    transmission: z.enum(["manual", "automatic"]),
-    fuel: z.enum(["petrol", "diesel", "hybrid", "electric"]),
+const vehicleListing = type.merge(baseListing, {
+    category: "'vehicle'",
+    vehicleType: "'car' | 'van' | 'suv' | 'motorbike' | 'three-wheeler' | 'lorry'",
+    brand: type("string>=1").narrow((brand) => brand.length <= 50),
+    code: type("string>=1").narrow((code) => code.length <= 50),
+    year: "number.integer>=1950",
+    mileage: "number>=0",
+    transmission: "'manual' | 'automatic'",
+    fuel: "'petrol' | 'diesel' | 'hybrid' | 'electric'",
 });
 
-export const createListingSchema = z.union([propertyListing, vehicleListing]);
+export const createListingSchema = type.or(propertyListing, vehicleListing);
 export const updatePropertySchema = propertyListing.partial();
 export const updateVehicleSchema = vehicleListing.partial();

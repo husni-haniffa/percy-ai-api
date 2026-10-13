@@ -6,7 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "../../config/env.js";
-import { r2 } from "../../config/r2.js";
+import { getR2Client } from "../../config/r2.js";
 import { AppError } from "../../lib/AppError.js";
 
 
@@ -45,7 +45,7 @@ export async function createUploadUrls(userId: string, contentTypes: string[]) {
             Key: key,
             ContentType: contentType,
         });
-        const uploadUrl = await getSignedUrl(r2, command, { expiresIn: 300 });
+        const uploadUrl = await getSignedUrl(getR2Client(), command, { expiresIn: 300 });
 
         tickets.push({ key, uploadUrl });
     }
@@ -58,7 +58,7 @@ export async function deleteKeys(keys: string[]) {
     if (keys.length === 0) return;
 
     try {
-        await r2.send(
+        await getR2Client().send(
             new DeleteObjectsCommand({
                 Bucket: env.r2Bucket,
                 Delete: { Objects: keys.map((Key) => ({ Key })) },
@@ -86,7 +86,7 @@ export async function promoteImages(
             const fileName = tempKey.split("/").pop() as string;
             const newKey = `listings/${listingId}/${fileName}`;
 
-            await r2.send(
+            await getR2Client().send(
                 new CopyObjectCommand({
                     Bucket: env.r2Bucket,
                     CopySource: `${env.r2Bucket}/${tempKey}`,

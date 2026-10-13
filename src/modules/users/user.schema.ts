@@ -1,9 +1,10 @@
-import { z } from "zod";
+import { type } from "arktype";
 
-export const onboardSchema = z.object({
-    phone: z.string(),
-    acceptedTerms: z.literal(true),
-}).passthrough();
+export const onboardSchema = type({
+    phone: "string",
+    acceptedTerms: "true",
+});
+
 // Returns the cleaned number like +94771234567, or null if invalid
 export function normalizePhone(input: string) {
     const cleaned = input.replace(/[\s-]/g, "");

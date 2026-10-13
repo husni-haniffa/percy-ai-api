@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { type } from "arktype";
 
-export const updatePlanSchema = z.object({
-    durationDays: z.number().int().positive().optional(),
-    maxListings: z.number().int().positive().optional(),
-}).passthrough();
+export const updatePlanSchema = type({
+    "durationDays?": "number.integer>0",
+    "maxListings?": "number.integer>0",
+});

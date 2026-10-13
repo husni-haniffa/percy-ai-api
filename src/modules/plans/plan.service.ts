@@ -7,13 +7,19 @@ export async function seedDefaultPlan() {
     const existing = await Plan.findOne({ isDefault: true });
     if (existing) return;
 
-    await Plan.create({
-        name: "Free",
-        durationDays: 60,
-        maxListings: 100,
-        isDefault: true,
-    });
-    console.log("Free plan created");
+    await Plan.findOneAndUpdate(
+        { name: "Free" },
+        {
+            $set: { isDefault: true },
+            $setOnInsert: {
+                name: "Free",
+                durationDays: 60,
+                maxListings: 100,
+                isDefault: true,
+            },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 }
 
 export async function getDefaultPlan() {

@@ -3,7 +3,6 @@ import { getOnboardedUser } from "../users/user.service.js";
 import { getCurrentSubscription } from "../subscriptions/subscription.service.js";
 import { AppError } from "../../lib/AppError.js";
 import mongoose from "mongoose";
-import type { z } from "zod";
 import { promoteImages, keyToUrl, deleteKeys, urlsToKeys } from "../images/image.service.js";
 import {
     createListingSchema,
@@ -53,7 +52,7 @@ export async function getCanCreate(clerkId: string) {
 
 export async function createListing(
     clerkId: string,
-    data: z.output<typeof createListingSchema>
+    data: typeof createListingSchema.infer
 ) {
     const user = await getOnboardedUser(clerkId);
 

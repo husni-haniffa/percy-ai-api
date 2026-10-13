@@ -1,30 +1,29 @@
-import { z } from "zod";
+import { type } from "arktype";
 
-const integerString = z.string().regex(/^-?\d+$/);
-const numericString = z.string().refine(
-    (value) => value.trim() !== "" && Number.isFinite(Number(value)),
-    "Must be numeric"
+const integerString = type("string").narrow((value) => /^-?\d+$/.test(value));
+const numericString = type("string").narrow(
+    (value) => value.trim() !== "" && Number.isFinite(Number(value))
 );
 
-const commonQuery = z.object({
-    purpose: z.enum(["sale", "rent"]).optional(),
-    city: z.string().optional(),
-    minPrice: numericString.optional(),
-    maxPrice: numericString.optional(),
-    page: integerString.optional(),
-    limit: integerString.optional(),
+const commonQuery = {
+    "purpose?": "'sale' | 'rent'",
+    "city?": "string",
+    "minPrice?": numericString,
+    "maxPrice?": numericString,
+    "page?": integerString,
+    "limit?": integerString,
+} as const;
+
+export const propertyQuerySchema = type.merge(commonQuery, {
+    "propertyType?": "'house' | 'apartment' | 'land' | 'commercial'",
+    "minBedrooms?": integerString,
 });
 
-export const propertyQuerySchema = commonQuery.extend({
-    propertyType: z.enum(["house", "apartment", "land", "commercial"]).optional(),
-    minBedrooms: integerString.optional(),
-}).passthrough();
-
-export const vehicleQuerySchema = commonQuery.extend({
-    vehicleType: z.enum(["car", "van", "suv", "motorbike", "three-wheeler", "lorry"]).optional(),
-    brand: z.string().optional(),
-    fuel: z.enum(["petrol", "diesel", "hybrid", "electric"]).optional(),
-    transmission: z.enum(["manual", "automatic"]).optional(),
-    minYear: integerString.optional(),
-    maxMileage: numericString.optional(),
-}).passthrough();
+export const vehicleQuerySchema = type.merge(commonQuery, {
+    "vehicleType?": "'car' | 'van' | 'suv' | 'motorbike' | 'three-wheeler' | 'lorry'",
+    "brand?": "string",
+    "fuel?": "'petrol' | 'diesel' | 'hybrid' | 'electric'",
+    "transmission?": "'manual' | 'automatic'",
+    "minYear?": integerString,
+    "maxMileage?": numericString,
+});

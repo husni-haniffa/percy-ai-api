@@ -1,15 +1,15 @@
-import { z } from "zod";
+import { type } from "arktype";
+import type { BaseType } from "arktype";
 import { AppError } from "./AppError.js";
 
-export function validate<TSchema extends z.ZodType>(
+export function validate<TSchema extends BaseType>(
     schema: TSchema,
     input: unknown,
     message?: string
-): z.output<TSchema> {
-    const result = schema.safeParse(input);
-    if (!result.success) {
-        const summary = result.error.issues.map((issue) => issue.message).join("; ");
-        throw new AppError(message ?? summary, 400);
+): TSchema["infer"] {
+    const result = schema(input);
+    if (result instanceof type.errors) {
+        throw new AppError(message ?? result.summary, 400);
     }
-    return result.data;
+    return result;
 }

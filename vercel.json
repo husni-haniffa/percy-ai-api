@@ -1,3 +1,8 @@
 {
-  "version": 2
+  "version": 2,
+  "functions": {
+    "src/index.ts": {
+      "includeFiles": "node_modules/openai/lib/responses/**"
+    }
+  }
 }

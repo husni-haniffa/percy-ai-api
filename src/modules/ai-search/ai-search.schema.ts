@@ -1,5 +1,5 @@
-import { z } from "zod";
+import { type } from "arktype";
 
-export const searchSchema = z.object({
-    query: z.string().min(3).max(300),
-}).passthrough();
+export const searchSchema = type({
+    query: type("string>=3").narrow((query) => query.length <= 300),
+});
